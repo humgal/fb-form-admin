@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import FormList from '@/views/FormList.vue'
 import FormHisList from '@/views/FormHisList.vue'
+import FormDetail from '@/components/FormDetail.vue'
+import FormHis from '@/components/FormHis.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -17,6 +19,16 @@ const routes: Array<RouteRecordRaw> = [
     path: '/formhislist',
     name: 'formhislist',
     component: FormHisList
+  },
+  {
+    path: '/formDetail',
+    name: 'formDetail',
+    component: FormDetail
+  },
+  {
+    path: '/formHis',
+    name: 'formHis',
+    component: FormHis
   },
   {
     path: '/about',
