@@ -1,5 +1,4 @@
 <template>
-  <AppHeader/>
   <el-main >
     <ul  class="infinite-list" style="overflow: auto">
     <li v-for="(item ,index) in resdata" :key="index" @click='toFormHis(item.title,item.id)' class="infinite-list-item">
@@ -16,7 +15,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import AppHeader from '@/components/AppHeader.vue'
 import axios from 'axios'
 export default defineComponent({
   name: 'FormHisList',
@@ -46,9 +44,6 @@ export default defineComponent({
   },
   mounted () {
     this.getFormHisList()
-  },
-  components: {
-    AppHeader
   }
 })
 </script>

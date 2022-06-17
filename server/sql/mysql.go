@@ -156,8 +156,12 @@ func FindDepidByName(db *sql.DB, depname string) (dep Department, err error) {
 		rows.Scan(&dep.Id, &dep.Name, &dep.Role)
 		res = append(res, dep)
 	}
+	if len(res) > 0 {
+		return res[0], err
+	} else {
+		return dep, errors.New("没有找到该部门。。。")
+	}
 
-	return res[0], err
 }
 
 func FindAllForm(db *sql.DB) (forms []Form, err error) {
@@ -225,7 +229,12 @@ func FindFormById(db *sql.DB, id int) (form Form, err error) {
 		rows.Scan(&form.Id, &form.Title, &form.Rule, &form.Option, &form.Uper, &form.UpName, &form.UpTime, &form.DepId, &form.Status)
 		res = append(res, form)
 	}
-	return res[0], nil
+	if len(res) > 0 {
+		return res[0], nil
+	} else {
+		return form, errors.New("没有此条数据")
+	}
+
 }
 
 func FindAllFormContent(db *sql.DB) (forms []FormContent, err error) {
@@ -269,7 +278,11 @@ func FindFormContentById(db *sql.DB, id int) (form FormContent, err error) {
 		rows.Scan(&form.Id, &form.Title, &form.Rule, &form.Option, &form.Uper, &form.UpName, &form.UpTime, &form.DepId, &form.Status, &form.Content, &form.FormId)
 		res = append(res, form)
 	}
-	return res[0], nil
+	if len(res) > 0 {
+		return res[0], nil
+	} else {
+		return form, errors.New("没有此条数据")
+	}
 }
 
 func InsertFormContent(db *sql.DB, form FormContent) (err error) {

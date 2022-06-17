@@ -1,5 +1,5 @@
 <template>
-  <AppHeader />
+
   <el-main>
 
     <div class="center-card">
@@ -18,7 +18,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import AppHeader from '@/components/AppHeader.vue'
 import axios from 'axios'
 export default defineComponent({
   name: 'FormList',
@@ -48,9 +47,6 @@ export default defineComponent({
   },
   mounted () {
     this.getFormList()
-  },
-  components: {
-    AppHeader
   }
 })
 </script>

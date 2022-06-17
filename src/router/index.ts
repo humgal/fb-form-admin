@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import HomeView from '@/views/HomeView.vue'
 import FormList from '@/views/FormList.vue'
 import FormHisList from '@/views/FormHisList.vue'
 import FormDetail from '@/components/FormDetail.vue'
@@ -8,7 +9,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
-    component: FormList
+    component: HomeView
   },
   {
     path: '/formlist',

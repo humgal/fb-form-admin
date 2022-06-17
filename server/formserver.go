@@ -273,11 +273,13 @@ func HisDetail(w http.ResponseWriter, r *http.Request) {
 	formcontent, err := mysql.FindFormContentById(DB, id)
 	if err != nil {
 		util.Logger.Println(err)
+		res.Code = 1
 	}
 	var conetent map[string]string
 	err = json.Unmarshal([]byte(formcontent.Content), &conetent)
 	if err != nil {
 		util.Logger.Println(err)
+		res.Code = 1
 	}
 	form, err := mysql.FindFormById(DB, formcontent.FormId)
 	if err != nil {
