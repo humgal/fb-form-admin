@@ -15,11 +15,7 @@ export default defineComponent({
       value: {},
 
       options: {
-
-        onSubmit: (formData:[]) => {
-          console.log(JSON.stringify(formData))
-        },
-
+        submitBtn: false,
         resetBtn: false
       },
 

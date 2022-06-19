@@ -14,10 +14,10 @@
     <el-menu-item index="3" ><a href="http://localhost:8088">表单编辑器</a></el-menu-item>
 
     <el-sub-menu index="4">
-      <template #title>用户</template>
-      <el-menu-item index="4-1" >权限管理</el-menu-item>
-      <el-menu-item index="4-2" >单位管理</el-menu-item>
-     <el-menu-item index="4-2" >表单审核</el-menu-item>
+      <template #title>系统管理</template>
+      <el-menu-item index="4-1" >用户管理</el-menu-item>
+      <el-menu-item index="4-2" >部门管理</el-menu-item>
+     <el-menu-item index="4-2" >表单授权</el-menu-item>
       <el-menu-item index="4-4">退出登录</el-menu-item>
 
     </el-sub-menu>
