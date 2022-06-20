@@ -3,6 +3,7 @@ package mysql
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"fubon.com/form/server/util"
 	_ "github.com/go-sql-driver/mysql"
@@ -194,19 +195,8 @@ func InsertForm(db *sql.DB, form Form) (err error) {
 		util.Logger.Println(err.Error())
 		return err
 	}
-	_, err = stmt.Exec(form.Title, form.Rule, form.Option, form.Uper, form.UpName, form.UpTime, form.DepId, form.Status)
-	return err
-}
-
-func InsertOrUpdateForm(db *sql.DB, form Form) (err error) {
-	sql := `insert or replace into form (id,title,rule,option,uper,upname,uptime,depid,status) values (?,?,?,?,?,?,?,?,?)`
-
-	stmt, err := db.Prepare(sql)
-	if err != nil {
-		util.Logger.Println(err.Error())
-		return err
-	}
-	_, err = stmt.Exec(form.Id, form.Title, form.Rule, form.Option, form.Uper, form.UpName, form.UpTime, form.DepId, form.Status)
+	var timeLayoutStr = "2006-01-02 15:04:05"
+	_, err = stmt.Exec(form.Title, form.Rule, form.Option, form.Uper, form.UpName, time.Now().Format(timeLayoutStr), form.DepId, form.Status)
 	return err
 }
 
@@ -292,7 +282,7 @@ func InsertFormContent(db *sql.DB, form FormContent) (err error) {
 		util.Logger.Println(err.Error())
 		return err
 	}
-	_, err = stmt.Exec(form.Title, form.Rule, form.Option, form.Uper, form.UpName, form.UpTime, form.DepId, form.Status, form.Content, form.FormId)
+	_, err = stmt.Exec(form.Title, form.Rule, form.Option, form.Uper, form.UpName, time.Now().Format("2006-01-02 15:04:05"), form.DepId, form.Status, form.Content, form.FormId)
 	if err != nil {
 		util.Logger.Println(err.Error())
 		return err

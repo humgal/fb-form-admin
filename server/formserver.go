@@ -6,14 +6,29 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	mysql "fubon.com/form/server/sql"
 	"fubon.com/form/server/util"
+	"github.com/golang-jwt/jwt"
 )
 
 type resp struct {
 	Code int
 	Msg  string
+}
+
+var jwtSecret = []byte("my_jwt_secret")
+
+type Claims struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	jwt.StandardClaims
+}
+
+type User struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
 }
 
 type FormRule struct {
@@ -66,6 +81,7 @@ func main() {
 	files := http.FileServer(http.Dir(util.Config.StaticDir))
 
 	http.Handle("/", files)
+	http.HandleFunc("/login", login)
 	http.HandleFunc("/form/create", CreateForm)
 	http.HandleFunc("/form/list", ListForm)
 	http.HandleFunc("/form/detail", PostForm)
@@ -75,7 +91,63 @@ func main() {
 	http.ListenAndServe(util.Config.Address, nil)
 }
 
+func login(writer http.ResponseWriter, request *http.Request) {
+	var user User
+	var res resp
+	b, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		util.Logger.Println(err.Error())
+
+		return
+	}
+	util.Logger.Println(string(b))
+
+	err = json.Unmarshal(b, &user)
+	if err != nil {
+		util.Logger.Println(err.Error())
+
+		return
+	}
+
+	DB, err := sql.Open(mysql.DbDriverName, mysql.DbName)
+	if err != nil {
+		util.Logger.Println(err.Error())
+
+		return
+	}
+	match, err := mysql.UserMatch(DB, mysql.User{0, user.Name, "", user.Password, 0})
+	if err != nil {
+		util.Logger.Println(err.Error())
+		return
+	}
+	if !match {
+		res = resp{0, "用户或密码错误"}
+		writer.Header().Set("Content-Type", "application/json")
+		output, err := json.MarshalIndent(&res, "", "")
+		if err != nil {
+			return
+		}
+		writer.Write(output)
+		util.Logger.Println(res)
+		return
+	}
+	token, err := GenerateToken(user.Name, user.Password)
+	if err != nil {
+		util.Logger.Println(err.Error())
+		return
+	}
+	res = resp{1, token}
+	writer.Header().Set("Content-Type", "application/json")
+	output, err := json.MarshalIndent(&res, "", "")
+	if err != nil {
+		return
+	}
+	writer.Write(output)
+	util.Logger.Println(res)
+}
+
 func CreateForm(w http.ResponseWriter, r *http.Request) {
+
 	formjson, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		util.Logger.Println(err)
@@ -113,6 +185,11 @@ func CreateForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListForm(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("token")
+	util.Logger.Println(token)
+	var cla *Claims
+	cla, err := ParseToken(token)
+	util.Logger.Println(cla.Username)
 	DB, err := sql.Open(mysql.DbDriverName, mysql.DbName)
 	res := resp{0, ""}
 	if err != nil {
@@ -149,6 +226,7 @@ func ListForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func PostForm(w http.ResponseWriter, r *http.Request) {
+
 	defer r.Body.Close()
 	b, err := ioutil.ReadAll(r.Body) //获取post的数据
 	var formid FormId
@@ -177,6 +255,15 @@ func PostForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateFormContent(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("token")
+	util.Logger.Println(token)
+	var cla *Claims
+	cla, err := ParseToken(token)
+	if err != nil {
+		util.Logger.Println(err)
+	}
+	util.Logger.Println(cla.Username)
+
 	formjson, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		util.Logger.Println(err)
@@ -200,8 +287,8 @@ func UpdateFormContent(w http.ResponseWriter, r *http.Request) {
 	}
 	mysqlformcontent.FormId = formid
 	mysqlformcontent.Title = formContent.Title
-	mysqlformcontent.UpName = "upname"
-	mysqlformcontent.UpTime = "uptime"
+	mysqlformcontent.UpName = cla.Username
+	mysqlformcontent.UpTime = time.Now().Format("2006-01-02 15:04:05")
 	contentstr, err := json.Marshal(&formContent.Content)
 	mysqlformcontent.Content = string(contentstr)
 	err = mysql.InsertFormContent(DB, mysqlformcontent)
@@ -275,7 +362,7 @@ func HisDetail(w http.ResponseWriter, r *http.Request) {
 		util.Logger.Println(err)
 		res.Code = 1
 	}
-	var conetent map[string]string
+	var conetent map[string]interface{}
 	err = json.Unmarshal([]byte(formcontent.Content), &conetent)
 	if err != nil {
 		util.Logger.Println(err)
@@ -293,13 +380,26 @@ func HisDetail(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < len(formRules); i++ {
 			if formRules[i].Field == key {
 				if len(formRules[i].Options) > 0 {
-					for j := 0; j < len(formRules[i].Options); j++ {
-						if formRules[i].Options[j].Value != value {
-							formRules[i].Children = append(formRules[i].Children, formRules[i].Options[j].Lable)
+					switch value.(type) {
+
+					case string:
+						in, _ := strconv.Atoi(value.(string))
+						formRules[i].Children = append(formRules[i].Children, formRules[i].Options[in-1].Lable)
+
+					case []interface{}:
+						valslice := value.([]interface{})
+						for j := 0; j < len(valslice); j++ {
+							in, _ := strconv.Atoi(valslice[j].(string))
+							formRules[i].Children = append(formRules[i].Children, formRules[i].Options[in-1].Lable)
+							formRules[i].Children = append(formRules[i].Children, ",")
 						}
+					default:
+						valslice := value.([]string)
+						println(valslice)
 					}
+
 				} else {
-					formRules[i].Children = append(formRules[i].Children, value)
+					formRules[i].Children = append(formRules[i].Children, value.(string))
 				}
 
 				formRules[i].Type = "span"
@@ -313,12 +413,24 @@ func HisDetail(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
 	var resrules []FormRule
 	for i := 0; i < len(formRules); i++ {
 		if formRules[i].Type == "span" {
 			resrules = append(resrules, formRules[i])
 		}
 	}
+	var lastrule FormRule
+	lastrule.Children = append(lastrule.Children, formcontent.UpTime)
+	lastrule.Type = "span"
+	lastrule.Tag = "span"
+	lastrule.Title = "上传时间"
+	lastrule.Display = true
+	lastrule.Hidden = false
+	lastrule.Native = false
+	lastrule.Info = ""
+	lastrule.Value = ""
+	resrules = append(resrules, lastrule)
 
 	Msg, err := json.Marshal(resrules)
 	if err != nil {
@@ -333,4 +445,40 @@ func HisDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(output)
+}
+
+func GenerateToken(username, password string) (string, error) {
+	nowTime := time.Now()
+	expireTime := nowTime.Add(3 * 24 * time.Hour)
+
+	claims := Claims{
+		Username: username,
+		Password: password,
+		StandardClaims: jwt.StandardClaims{
+
+			ExpiresAt: expireTime.Unix(),
+
+			Issuer: "gin-blog",
+		},
+	}
+
+	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	token, err := tokenClaims.SignedString(jwtSecret)
+	return token, err
+}
+
+func ParseToken(token string) (*Claims, error) {
+
+	tokenClaims, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecret, nil
+	})
+
+	if tokenClaims != nil {
+		if claims, ok := tokenClaims.Claims.(*Claims); ok && tokenClaims.Valid {
+			return claims, nil
+		}
+	}
+	return nil, err
+
 }

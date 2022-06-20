@@ -32,11 +32,20 @@ export default defineComponent({
             })
           }
           console.log(JSON.stringify(formData))
-          axios.post('/api/form/updatecontent', {
-            id: this.$route.params.id,
-            content: formData,
-            title: this.$route.params.title
-          }).then((res) => {
+          axios({
+            method: 'post',
+            url: '/api/form/updatecontent',
+            data: {
+              id: this.$route.params.id,
+              content: formData,
+              title: this.$route.params.title
+            },
+            headers: {
+              token: String(sessionStorage.getItem('token'))
+            }
+
+          }
+          ).then((res) => {
             console.log(res)
             if (res.data.Code === 0) {
               open2()

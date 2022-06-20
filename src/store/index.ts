@@ -1,14 +1,18 @@
-import { createStore } from 'vuex'
+import Vuex from 'vuex'
 
-export default createStore({
+const store = new Vuex.Store({
   state: {
+    // 存储token
+    Authorization: sessionStorage.getItem('Authorization') ? sessionStorage.getItem('Authorization') : ''
   },
-  getters: {
-  },
+
   mutations: {
-  },
-  actions: {
-  },
-  modules: {
+    // 修改token，并将token存入sessionStorage
+    changeLogin (state, user) {
+      state.Authorization = user.Authorization
+      sessionStorage.setItem('Authorization', user.Authorization)
+    }
   }
 })
+
+export default store

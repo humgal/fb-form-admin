@@ -4,7 +4,7 @@
 
     <div class="center-card">
       <el-card shadow="hover" class="form-item" v-for="(item, index) in resdata" :key="index"
-        @click='toFormDetail(item.title,item.id)'>
+        @click='toFormDetail(item.title, item.id)'>
         <div>
           <h4>{{ item.title }}</h4>
         </div>
@@ -29,7 +29,13 @@ export default defineComponent({
   },
   methods: {
     getFormList () {
-      axios.post('/api/form/list').then((res) => {
+      axios({
+        method: 'post',
+        url: '/api/form/list',
+        headers: {
+          token: String(sessionStorage.getItem('token'))
+        }
+      }).then((res) => {
         console.log(res.data.Msg)
         this.resdata = JSON.parse(res.data.Msg)
       })
