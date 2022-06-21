@@ -1,4 +1,4 @@
 {
-    "StaticDir":"../public",
+    "StaticDir":"../dist",
     "Address":"0.0.0.0:8088"
 }

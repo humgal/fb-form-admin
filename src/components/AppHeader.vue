@@ -11,7 +11,7 @@
     <el-menu-item index="2"><router-link to="/formhislist">事项记录</router-link> </el-menu-item>
     <div class="flex-grow" />
 
-    <el-menu-item index="3" ><a href="http://localhost:8088">表单编辑器</a></el-menu-item>
+    <el-menu-item index="3" ><a href="/degsin">表单编辑器</a></el-menu-item>
 
     <el-sub-menu index="4">
       <template #title>系统管理</template>

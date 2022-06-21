@@ -79,15 +79,14 @@ type FormId struct {
 func main() {
 	util.LoadConfig()
 	files := http.FileServer(http.Dir(util.Config.StaticDir))
-
 	http.Handle("/", files)
-	http.HandleFunc("/login", login)
-	http.HandleFunc("/form/create", CreateForm)
-	http.HandleFunc("/form/list", ListForm)
-	http.HandleFunc("/form/detail", PostForm)
-	http.HandleFunc("/form/updatecontent", UpdateFormContent)
-	http.HandleFunc("/form/hislist", ListFormHis)
-	http.HandleFunc("/form/hisdetail", HisDetail)
+	http.HandleFunc("/api/login", login)
+	http.HandleFunc("/api/form/create", CreateForm)
+	http.HandleFunc("/api/form/list", ListForm)
+	http.HandleFunc("/api/form/detail", PostForm)
+	http.HandleFunc("/api/form/updatecontent", UpdateFormContent)
+	http.HandleFunc("/api/form/hislist", ListFormHis)
+	http.HandleFunc("/api/form/hisdetail", HisDetail)
 	http.ListenAndServe(util.Config.Address, nil)
 }
 
